@@ -1,14 +1,11 @@
 import Routing
+import Foundation
 import Vapor
 
 /// Register your application's routes here.
 ///
 /// [Learn More →](https://docs.vapor.codes/3.0/getting-started/structure/#routesswift)
-public func routes(_ router: Router) throws {
-    // Basic "Hello, world!" example
-    router.get("hello") { req in
-        return "Hello, world!"
-    }
+public func routes(_ router: Router, env: Environment) throws {
 
     // Example of creating a Service and using it.
     router.get("hash", String.parameter) { req -> String in
@@ -21,10 +18,28 @@ public func routes(_ router: Router) throws {
         // Return the hashed string!
         return try hasher.make(string)
     }
-
-    // Example of configuring a controller
-    let todoController = TodoController()
-    router.get("todos", use: todoController.index)
-    router.post("todos", use: todoController.create)
-    router.delete("todos", Todo.parameter, use: todoController.delete)
+    
+    struct AppInfoResponse: Content {
+        static let defaultMediaType: MediaType = .json
+        
+        let name: String
+        let versions: [String]
+        let environment: String
+    }
+    
+    let appInfo = AppInfoResponse (
+        name: "Athlete API",
+        versions: ["v1"],
+        environment: env.name
+    )
+    
+    router.get("/") { _ in appInfo }
+    
+    let v1 = router.grouped("v1")
+    
+    v1.get("/") { _ in appInfo }
+    
+    try v1.register(collection: TodoController())
+    try v1.register(collection: UsersController())
+    try v1.register(collection: AuthController())
 }

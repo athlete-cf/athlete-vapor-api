@@ -6,8 +6,8 @@
         "repositoryURL": "https://github.com/vapor/async.git",
         "state": {
           "branch": null,
-          "revision": "887ddb41af15a39c3e47b9e0b207aa8efd8bafc3",
-          "version": "1.0.0-rc.1"
+          "revision": "76ed7841b32dcc47168e8d9040ba03c024224d0c",
+          "version": "1.0.0-rc.1.1"
         }
       },
       {
@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/vapor/core.git",
         "state": {
           "branch": null,
-          "revision": "086a41eeeb2c97e53002950ae3b65b365759b66b",
-          "version": "3.0.0-rc.1"
+          "revision": "0dd54c6e369f575a13f2c9964609b6c7d2dab909",
+          "version": "3.0.0-rc.1.0.1"
         }
       },
       {
@@ -33,8 +33,8 @@
         "repositoryURL": "https://github.com/vapor/crypto.git",
         "state": {
           "branch": null,
-          "revision": "9a708a33ec21f5d1eea858c10cf7e9b8306a0b30",
-          "version": "3.0.0-rc.1"
+          "revision": "e5dbff5eac700fe925f95a4e6eee5424f609d0d6",
+          "version": "3.0.0-rc.1.1.1"
         }
       },
       {
@@ -51,8 +51,8 @@
         "repositoryURL": "https://github.com/vapor/engine.git",
         "state": {
           "branch": null,
-          "revision": "cfe3ffc04b0316564a40ad8e5dfb9a355d936c25",
-          "version": "3.0.0-rc.1"
+          "revision": "e12531d2b37895d21cd8b8d13ad930fa85217e9e",
+          "version": "3.0.0-rc.1.0.1"
         }
       },
       {
@@ -60,17 +60,35 @@
         "repositoryURL": "https://github.com/vapor/fluent.git",
         "state": {
           "branch": null,
-          "revision": "d584c55eadbfe14cda60ccf74e6f5a81401f71ee",
+          "revision": "cffc5f4da1adab41bb4c21205e469e255327441e",
+          "version": "3.0.0-rc.1.0.1"
+        }
+      },
+      {
+        "package": "FluentPostgreSQL",
+        "repositoryURL": "https://github.com/vapor/fluent-postgresql.git",
+        "state": {
+          "branch": null,
+          "revision": "006386aa987f6a17199271a3266c3cfc281a2c93",
+          "version": "1.0.0-rc.1.1"
+        }
+      },
+      {
+        "package": "JWT",
+        "repositoryURL": "https://github.com/vapor/jwt.git",
+        "state": {
+          "branch": null,
+          "revision": "f912bda2c059e14f63df4c25ea4c7f703ac2ca77",
           "version": "3.0.0-rc.1"
         }
       },
       {
-        "package": "FluentSQLite",
-        "repositoryURL": "https://github.com/vapor/fluent-sqlite.git",
+        "package": "PostgreSQL",
+        "repositoryURL": "https://github.com/vapor/postgresql.git",
         "state": {
           "branch": null,
-          "revision": "a2d70d95b660631d591a7aa1ed1a65c91f67acf3",
-          "version": "3.0.0-rc.1"
+          "revision": "2d93ec3b5bc0bbbf0e4e095d5f07efdc736b8e3f",
+          "version": "1.0.0-rc.1.0.1"
         }
       },
       {
@@ -79,15 +97,6 @@
         "state": {
           "branch": null,
           "revision": "8210d28691a11d0d27b7a0b32117d7fd81099916",
-          "version": "3.0.0-rc.1"
-        }
-      },
-      {
-        "package": "SQLite",
-        "repositoryURL": "https://github.com/vapor/sqlite.git",
-        "state": {
-          "branch": null,
-          "revision": "951e4f128d15a8a49e009fcf7a49f8e66e189eb7",
           "version": "3.0.0-rc.1"
         }
       },
@@ -114,8 +123,8 @@
         "repositoryURL": "https://github.com/vapor/tls.git",
         "state": {
           "branch": null,
-          "revision": "648e653758ad29f7087c95a91bc0d183712b94ab",
-          "version": "3.0.0-rc.1"
+          "revision": "cfd8cc0f06841ee15469c5fc98131e47511f8e94",
+          "version": "3.0.0-rc.1.0.1"
         }
       },
       {
@@ -123,8 +132,8 @@
         "repositoryURL": "https://github.com/vapor/template-kit.git",
         "state": {
           "branch": null,
-          "revision": "4d2f61c26011e45905deec5a718179d144f5bb6f",
-          "version": "1.0.0-rc.1"
+          "revision": "cda3174c5e029526a5b11b19fcfd83bd65b6876a",
+          "version": "1.0.0-rc.1.1"
         }
       },
       {
@@ -141,8 +150,8 @@
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "251e28ebd6615af47921f8ca23d0a78ca80d02fc",
-          "version": "3.0.0-rc.1"
+          "revision": "d8254ba464b211ca6d465703f7f5d37eb0c95b65",
+          "version": "3.0.0-rc.1.1"
         }
       }
     ]
