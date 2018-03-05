@@ -24,6 +24,7 @@ public func configure(
     // middlewares.use(FileMiddleware.self) // Serves files from `Public/` directory
     middlewares.use(DateMiddleware.self) // Adds `Date` header to responses
     middlewares.use(ErrorMiddleware.self) // Catches errors and converts to HTTP response
+    middlewares.use(AuthMiddleware.self) // Check JWT tokens for all urls expect unsecured
     services.register(middlewares)
 
     // Configure databases
@@ -39,6 +40,11 @@ public func configure(
     let pgDB = PostgreSQLDatabase(config: pgConfig)
     databases.add(database: pgDB, as: .psql)
     
+    // Register Auth sevice
+    services.register(AuthMiddleware(environment: env))
+    
+    services.register(JWTService())
+    
     // Configure a SQLite database
     //try databases.add(database: SQLiteDatabase(storage: .memory), as: .sqlite)
     
@@ -47,6 +53,8 @@ public func configure(
     // Configure migrations
     var migrations = MigrationConfig()
     migrations.add(model: Todo.self, database: .psql)
+    migrations.add(model: PhoneVerification.self, database: .psql)
+    migrations.add(model: User.self, database: .psql)
     services.register(migrations)
 
     // Configure the rest of your application here

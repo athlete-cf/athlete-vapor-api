@@ -6,10 +6,10 @@ import Vapor
 /// A single entry of a Todo list.
 final class Todo: PostgreSQLModel {
     
-    /// The unique identifier for this `Todo`.
+    /// The unique identifier for this `Todo`
     var id: Int?
 
-    /// A title describing what this `Todo` entails.
+    /// A title describing what this `Todo` entails
     var title: String
     var note: String?
     
@@ -22,7 +22,7 @@ final class Todo: PostgreSQLModel {
     /// `Timestampable.updatedAt`
     var updatedAt: Date?
 
-    /// Creates a new `Todo`.
+    /// Creates a new `Todo`
     init(id: Int? = nil, title: String, note: String?) {
         self.id = id
         self.title = title
@@ -41,13 +41,13 @@ extension Todo: SoftDeletable {
     static var deletedAtKey: DeletedAtKey { return \.deletedAt }
 }
 
-/// Allows `Todo` to be used as a dynamic migration.
+/// Allows `Todo` to be used as a dynamic migration
 extension Todo: Migration { }
 
-/// Allows `Todo` to be encoded to and decoded from HTTP messages.
+/// Allows `Todo` to be encoded to and decoded from HTTP messages
 extension Todo: Content { }
 
-/// Allows `Todo` to be used as a dynamic parameter in route definitions.
+/// Allows `Todo` to be used as a dynamic parameter in route definitions
 extension Todo: Parameter { }
 
 extension Todo {
