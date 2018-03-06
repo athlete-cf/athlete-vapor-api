@@ -7,7 +7,7 @@ class JWTService: Service {
     
     /// Create a new JWTService for the supplied environment.
     public init() {
-        let secret = Environment.get("JWT_SECRET")!
+        let secret = Environment.JWT_SECRET
         self.signer = JWTSigner.hs256(key: Data(secret.utf8))
     }
     
