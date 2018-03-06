@@ -9,12 +9,19 @@ import JWT
 /// Captures all errors and transforms them into an internal server error.
 public final class AuthMiddleware: Middleware, Service {
     
-    /// list of unsecured URLs
-    /// Order is matter.
-    /// Verification stops on first success match.
-    /// With [`/v1/auth`, `/v1/auth/code`] last will not be reached
-    static var unsecuredPaths = [
-        "/v1/auth"
+    enum PathMatchType {
+        case starts, equals
+    }
+    
+    /// List of unsecured URLs
+    /// Order is matter
+    /// Equals match type should be at the begining of the list to prevent unexpected behavior.
+    /// Verification stops on first success match
+    static var unsecuredPaths: [(String, PathMatchType)] = [
+        ("/", .equals),
+        ("/v1", .equals),
+        ("/v1/", .equals),
+        ("/v1/auth", .starts)
     ]
     
     /// The environment to respect when presenting errors.
@@ -25,15 +32,19 @@ public final class AuthMiddleware: Middleware, Service {
         self.environment = environment
     }
     
-    /// See `Middleware.respond`
+    /// `Middleware.respond`
     public func respond(to req: Request, chainingTo next: Responder) throws -> Future<Response> {
         let promise = Promise<Response>()
         
         try next.respond(to: req).do { res in
             
-            for path in AuthMiddleware.unsecuredPaths {
+            for (path, matchType) in AuthMiddleware.unsecuredPaths {
+                if matchType == .equals && req.http.uri.path == path {
+                    break
+                }
+                
                 if !req.http.uri.path.starts(with: path) {
-                    print("Secured path")
+                    debugPrint("Secured path")
                     guard let jwtToken = req.http.headers["t"] else {
                         let resp = Response(http: HTTPResponse(status: .unauthorized), using: req)
                         promise.complete(resp)
@@ -59,7 +70,7 @@ public final class AuthMiddleware: Middleware, Service {
                     
                     break
                 } else {
-                    print("Unsecured path")
+                    debugPrint("Unsecured path")
                 }
             }
             
