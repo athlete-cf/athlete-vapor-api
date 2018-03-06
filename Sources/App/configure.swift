@@ -31,11 +31,11 @@ public func configure(
     var databases = DatabaseConfig()
     
     // Configure a Postgres database
-    let host = Environment.get("DB_HOST") ?? "localhost"
-    let port = UInt16(Environment.get("DB_PORT") ?? "n/a") ?? 5432
-    let user = Environment.get("DB_USER") ?? "postgres"
-    let dbname = Environment.get("DB_NAME") ?? "postgres"
-    let pass = Environment.get("DB_PASSWORD")
+    let host = Environment.DB_HOST
+    let port = Environment.DB_PORT
+    let user = Environment.DB_USER
+    let dbname = Environment.DB_NAME
+    let pass = Environment.DB_PASSWORD
     let pgConfig = PostgreSQLDatabaseConfig(hostname: host, port: port, username: user, database: dbname, password: pass)
     let pgDB = PostgreSQLDatabase(config: pgConfig)
     databases.add(database: pgDB, as: .psql)

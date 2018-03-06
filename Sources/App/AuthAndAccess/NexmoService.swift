@@ -32,8 +32,8 @@ struct NexmoCheckResponse: Content {
 class NexmoService: Service {
     static func verify(req: Request, phone: String) throws -> Future<NexmoVerifyResponse> {
         let verifyRequest = NexmoVerifyRequest(
-            api_key: Environment.get("NEXMO_KEY")!,
-            api_secret: Environment.get("NEXMO_SECRET")!,
+            api_key: Environment.NEXMO_KEY,
+            api_secret: Environment.NEXMO_SECRET,
             number: phone,
             brand: "Athlete CF"
         )
@@ -52,8 +52,8 @@ class NexmoService: Service {
     
     static func check(req: Request, requestID: String, code: String) throws -> Future<NexmoCheckResponse> {
         let checkRequest = NexmoCheckRequest(
-            api_key: Environment.get("NEXMO_KEY")!,
-            api_secret: Environment.get("NEXMO_SECRET")!,
+            api_key: Environment.NEXMO_KEY,
+            api_secret: Environment.NEXMO_SECRET,
             request_id: requestID, code: code
         )
         
