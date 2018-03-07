@@ -81,6 +81,7 @@ extension UserProfile: Migration {
         }
     }
     
+    /// Migration.revert
     public static func revert(on connection: PostgreSQLConnection) -> Future<Void> {
         return Database.delete(User.self, on: connection)
     }
@@ -112,7 +113,7 @@ extension UserProfile {
     
     static func oneFromRequest(_ req: Request) throws -> Future<UserProfile> {
         let id = try req.parameter(Int.self)
-        return UserProfile.query(on: req).filter(\UserProfile.id == id).first().map(to: UserProfile.self, { item in
+        return UserProfile.query(on: req).filter(\UserProfile.userID == id).first().map(to: UserProfile.self, { item in
             guard let item = item else {
                 throw Abort(.notFound)
             }

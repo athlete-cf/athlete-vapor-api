@@ -8,8 +8,15 @@ class UsersController: RouteCollection {
         return Future(res)
     }
     
+    /// User profile by user ID
+    func profile(_ req: Request) throws -> Future<UserProfile> {
+        return try UserProfile.oneFromRequest(req)
+    }
+    
     func boot(router: Router) throws {
-        router.get("users", use: index)
+        let path = "users".makePathComponent()
+        
+        router.get(path, "profile", Int.parameter, use: profile)
     }
     
 }

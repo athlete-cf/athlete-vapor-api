@@ -13,6 +13,7 @@ final class User: PostgreSQLModel {
     /// The unique identifier for this `User`
     var id: Int?
     
+    /// The unique phone for this `User`
     var phone: String?
     
     /// `SoftDeletable.deletedAt`
@@ -51,7 +52,24 @@ extension User: SoftDeletable {
 }
 
 /// Allows `User` to be used as a dynamic migration
-extension User: Migration { }
+extension User: Migration {
+    /// Migration.prepare
+    static func prepare(on connection: PostgreSQLConnection) -> Future<Void> {
+        return Database.create(self, on: connection) { schema in
+            schema.addField(type: PostgreSQLColumn(type: .int8), name: CodingKeys.id.stringValue, isOptional: false, isIdentifier: true)
+            schema.addField(type: PostgreSQLColumn(type: .varchar, size: 80, default: nil), name: CodingKeys.phone.stringValue, isOptional: true)
+            schema.addField(type: PostgreSQLColumn(type: .timestamp), name: CodingKeys.createdAt.stringValue, isOptional: true)
+            schema.addField(type: PostgreSQLColumn(type: .timestamp), name: CodingKeys.updatedAt.stringValue, isOptional: true)
+            schema.addField(type: PostgreSQLColumn(type: .timestamp), name: CodingKeys.deletedAt.stringValue, isOptional: true)
+            schema.addIndex(to: \.phone, isUnique: true)
+        }
+    }
+    
+    /// Migration.revert
+    public static func revert(on connection: PostgreSQLConnection) -> Future<Void> {
+        return Database.delete(User.self, on: connection)
+    }
+}
 
 /// Allows `User` to be encoded to and decoded from HTTP messages
 extension User: Content { }
@@ -61,9 +79,7 @@ extension User: Parameter { }
 
 extension User {
     struct UpdateRequest: Content {
-        let fname: String?
-        let sname: String?
-        let nickname: String?
+        let phone: String?
     }
     
     static func findOrCreateOnRequest(_ req: Request, by phone: String) throws -> Future<User> {
@@ -96,10 +112,9 @@ extension User {
     }
     
     static func updateFromRequest(_ req: Request) throws -> Future<User> {
-        return try req.content.decode(Todo.UpdateRequest.self).flatMap(to: User.self, { update in
+        return try req.content.decode(UpdateRequest.self).flatMap(to: User.self, { update in
             return try User.oneFromRequest(req).flatMap(to: User.self, { item in
-//                if let item = update.title { item.title = title }
-//                if let note = update.note { item.note = note }
+                if let phone = update.phone { item.phone = phone }
                 
                 return item.update(on: req)
             })
