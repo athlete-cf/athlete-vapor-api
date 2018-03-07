@@ -55,6 +55,7 @@ public func configure(
     migrations.add(model: Todo.self, database: .psql)
     migrations.add(model: PhoneVerification.self, database: .psql)
     migrations.add(model: User.self, database: .psql)
+    migrations.add(model: UserProfile.self, database: .psql)
     services.register(migrations)
 
     // Configure the rest of your application here

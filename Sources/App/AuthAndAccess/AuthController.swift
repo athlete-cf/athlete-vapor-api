@@ -94,11 +94,22 @@ final class AuthController: RouteCollection {
     /// Guest login
     func guest(_ req: Request) throws -> Future<CheckResponse> {
         return try req.content.decode(GuestRequest.self).flatMap(to: CheckResponse.self) { res in
-            return User(nickname: res.nickname).save(on: req)
+            return User().save(on: req)
                 .flatMap(to: CheckResponse.self, { user in
-                    let jwt = try req.make(JWTService.self)
-                    let token = try jwt.jwtTokenForUser(user)
-                    return Future(CheckResponse(token: token))
+                    guard let userID = user.id else {
+                        throw Abort(.internalServerError)
+                    }
+                    
+                    return try UserProfile.findOrCreateOnRequest(req, by: userID)
+                        .flatMap(to: CheckResponse.self, { profile in
+                            profile.nickName = res.nickname
+                            return profile.save(on: req)
+                                .flatMap(to: CheckResponse.self, { profile in
+                                    let jwt = try req.make(JWTService.self)
+                                    let token = try jwt.jwtTokenForUser(user)
+                                    return Future(CheckResponse(token: token))
+                                })
+                        })
                 })
         }
     }

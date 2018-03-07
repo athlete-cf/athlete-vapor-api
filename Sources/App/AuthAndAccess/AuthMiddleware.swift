@@ -21,7 +21,8 @@ public final class AuthMiddleware: Middleware, Service {
         ("/", .equals),
         ("/v1", .equals),
         ("/v1/", .equals),
-        ("/v1/auth", .starts)
+        ("/v1/auth", .starts),
+        ("/dev/", .starts)
     ]
     
     /// The environment to respect when presenting errors.
@@ -38,40 +39,44 @@ public final class AuthMiddleware: Middleware, Service {
         
         try next.respond(to: req).do { res in
             
+            var isUnsecured = false
+            
             for (path, matchType) in AuthMiddleware.unsecuredPaths {
                 if matchType == .equals && req.http.uri.path == path {
+                    isUnsecured = true
                     break
                 }
                 
-                if !req.http.uri.path.starts(with: path) {
-                    debugPrint("Secured path")
-                    guard let jwtToken = req.http.headers["t"] else {
-                        let resp = Response(http: HTTPResponse(status: .unauthorized), using: req)
-                        promise.complete(resp)
-                        return
-                    }
-                    
-                    do {
-                        
-                        let jwt = try req.make(JWTService.self)
-                        let payload = try jwt.parse(jwtToken)
-                        
-                        print("Authenticated user ID:", payload.userID)
-                        
-                        res.http.headers["userID"] = String(payload.userID)
-                        promise.complete(res)
-                        
-                    } catch let e {
-                        debugPrint(e)
-                        let resp = Response(http: HTTPResponse(status: .unauthorized), using: req)
-                        promise.complete(resp)
-                        return
-                    }
-                    
+                if matchType == .starts && req.http.uri.path.starts(with: path) {
+                    isUnsecured = true
                     break
-                } else {
-                    debugPrint("Unsecured path")
                 }
+            }
+            
+            if !isUnsecured {
+                debugPrint("Secured path")
+                guard let jwtToken = req.http.headers["t"] else {
+                    let resp = Response(http: HTTPResponse(status: .unauthorized), using: req)
+                    promise.complete(resp)
+                    return
+                }
+
+                do {
+                    let jwt = try req.make(JWTService.self)
+                    let payload = try jwt.parse(jwtToken)
+                    
+                    print("Authenticated user ID:", payload.userID)
+                    
+                    res.http.headers["userID"] = String(payload.userID)
+                    promise.complete(res)
+                } catch let e {
+                    debugPrint(e)
+                    let resp = Response(http: HTTPResponse(status: .unauthorized), using: req)
+                    promise.complete(resp)
+                    return
+                }
+            } else {
+                debugPrint("Unsecured path")
             }
             
             promise.complete(res)

@@ -35,11 +35,12 @@ public func routes(_ router: Router, env: Environment) throws {
     
     router.get("/") { _ in appInfo }
     
+    let dev = router.grouped("dev")
+    try dev.register(collection: DevUtilsController())
+    
     let v1 = router.grouped("v1")
-    
-    v1.get("/") { _ in appInfo }
-    
     try v1.register(collection: TodoController())
     try v1.register(collection: UsersController())
     try v1.register(collection: AuthController())
+    v1.get("/") { _ in appInfo }
 }

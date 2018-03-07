@@ -5,12 +5,15 @@ import Vapor
 
 final class User: PostgreSQLModel {
     
+    enum Role: String {
+        case user = "user"
+        case coach = "coach"
+    }
+    
     /// The unique identifier for this `User`
     var id: Int?
     
     var phone: String?
-    
-    var nickname: String?
     
     /// `SoftDeletable.deletedAt`
     var deletedAt: Date?
@@ -21,11 +24,18 @@ final class User: PostgreSQLModel {
     /// `Timestampable.updatedAt`
     var updatedAt: Date?
     
+    enum CodingKeys: String, CodingKey {
+        case id
+        case phone
+        case deletedAt
+        case createdAt
+        case updatedAt
+    }
+    
     /// Creates a new `User`
-    init(id: Int? = nil, phone: String? = nil, nickname: String? = nil) {
+    init(id: Int? = nil, phone: String? = nil) {
         self.id = id
         self.phone = phone
-        self.nickname = nickname
     }
 }
 
@@ -53,6 +63,7 @@ extension User {
     struct UpdateRequest: Content {
         let fname: String?
         let sname: String?
+        let nickname: String?
     }
     
     static func findOrCreateOnRequest(_ req: Request, by phone: String) throws -> Future<User> {
