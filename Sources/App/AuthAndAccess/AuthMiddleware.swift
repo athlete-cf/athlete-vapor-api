@@ -53,33 +53,43 @@ public final class AuthMiddleware: Middleware, Service {
                 }
             }
             
-            if !isUnsecured {
-                debugPrint("Secured path")
-                guard let jwtToken = req.http.headers["t"] else {
-                    let resp = Response(http: HTTPResponse(status: .unauthorized), using: req)
-                    promise.complete(resp)
-                    return
-                }
-
-                do {
-                    let jwt = try req.make(JWTService.self)
-                    let payload = try jwt.parse(jwtToken)
-                    
-                    print("Authenticated user ID:", payload.userID)
-                    
-                    res.http.headers["userID"] = String(payload.userID)
-                    promise.complete(res)
-                } catch let e {
-                    debugPrint(e)
-                    let resp = Response(http: HTTPResponse(status: .unauthorized), using: req)
-                    promise.complete(resp)
-                    return
-                }
-            } else {
-                debugPrint("Unsecured path")
+            func completeUnauthorized() {
+                let resp = Response(http: HTTPResponse(status: .unauthorized), using: req)
+                promise.complete(resp)
             }
             
-            promise.complete(res)
+            if !isUnsecured {
+                print("Secured path")
+                guard let jwtToken = req.http.headers["t"] else {
+                    completeUnauthorized()
+                    return
+                }
+                
+                JWTBannedToken.find(req, by: jwtToken).addAwaiter(callback: { bannedToken in
+                    if let bannedToken = bannedToken.expectation??.token {
+                        completeUnauthorized()
+                        debugPrint("Banned token:", bannedToken)
+                        return
+                    }
+                    
+                    do {
+                        let jwt = try req.make(JWTService.self)
+                        let payload = try jwt.parse(jwtToken)
+                        
+                        print("Authenticated user ID:", payload.userID)
+                        
+                        res.http.headers["userID"] = String(payload.userID)
+                        promise.complete(res)
+                    } catch let e {
+                        debugPrint(e)
+                        completeUnauthorized()
+                        return
+                    }
+                })
+            } else {
+                debugPrint("Unsecured path")
+                promise.complete(res)
+            }
         }.catch { error in
             promise.fail(error)
         }

@@ -27,8 +27,19 @@ class DevUtilsController: RouteCollection {
         }
     }
     
+    func banToken(_ req: Request) throws -> Future<JWTBannedToken> {
+        let token = try req.parameter(String.self)
+        let passCode = try req.parameter(Int.self)
+        if passCode != 2384 { throw Abort(.unauthorized) }
+        
+        let bannedToken = JWTBannedToken(token: token)
+        
+        return bannedToken.save(on: req)
+    }
+    
     func boot(router: Router) throws {
         router.get("dropTables", Int.parameter, use: drop)
+        router.get("banToken", String.parameter, Int.parameter, use: banToken)
     }
     
 }
