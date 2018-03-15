@@ -33,7 +33,24 @@ extension JWTBannedToken: Timestampable {
 }
 
 /// Allows `Todo` to be used as a dynamic migration
-extension JWTBannedToken: Migration { }
+extension JWTBannedToken: Migration {
+    /// Migration.prepare
+    static func prepare(on connection: PostgreSQLConnection) -> Future<Void> {
+        return Database.create(self, on: connection) { schema in
+            schema.addField(type: PostgreSQLColumn(type: .int8), name: CodingKeys.id.stringValue, isOptional: false, isIdentifier: true)
+            schema.addField(type: PostgreSQLColumn(type: .varchar, size: 512, default: nil), name: CodingKeys.token.stringValue, isOptional: true)
+            schema.addField(type: PostgreSQLColumn(type: .timestamp), name: CodingKeys.createdAt.stringValue, isOptional: true)
+            schema.addField(type: PostgreSQLColumn(type: .timestamp), name: CodingKeys.updatedAt.stringValue, isOptional: true)
+            schema.addIndex(to: \.id, isUnique: true)
+            schema.addIndex(to: \.token, isUnique: false)
+        }
+    }
+    
+    /// Migration.revert
+    public static func revert(on connection: PostgreSQLConnection) -> Future<Void> {
+        return Database.delete(JWTBannedToken.self, on: connection)
+    }
+}
 
 /// Allows `Todo` to be encoded to and decoded from HTTP messages
 extension JWTBannedToken: Content { }

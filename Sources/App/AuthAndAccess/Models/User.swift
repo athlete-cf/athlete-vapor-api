@@ -28,9 +28,9 @@ final class User: PostgreSQLModel {
     enum CodingKeys: String, CodingKey {
         case id
         case phone
-        case deletedAt
-        case createdAt
-        case updatedAt
+        case deletedAt = "deleted_at"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
     }
     
     /// Creates a new `User`
@@ -92,8 +92,7 @@ extension User {
         })
     }
     
-    static func oneFromRequest(_ req: Request) throws -> Future<User> {
-        let id = try req.parameter(Int.self)
+    static func oneFromRequest(_ req: Request, by id: Int) throws -> Future<User> {
         return User.query(on: req).filter(\User.id == id).first().map(to: User.self, { item in
             guard let item = item else {
                 throw Abort(.notFound)
@@ -111,9 +110,9 @@ extension User {
         }
     }
     
-    static func updateFromRequest(_ req: Request) throws -> Future<User> {
+    static func updateFromRequest(_ req: Request, by id: Int) throws -> Future<User> {
         return try req.content.decode(UpdateRequest.self).flatMap(to: User.self, { update in
-            return try User.oneFromRequest(req).flatMap(to: User.self, { item in
+            return try User.oneFromRequest(req, by: id).flatMap(to: User.self, { item in
                 if let phone = update.phone { item.phone = phone }
                 
                 return item.update(on: req)

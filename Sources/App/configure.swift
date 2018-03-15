@@ -56,6 +56,7 @@ public func configure(
     migrations.add(model: PhoneVerification.self, database: .psql)
     migrations.add(model: User.self, database: .psql)
     migrations.add(model: UserProfile.self, database: .psql)
+    migrations.add(model: UserBio.self, database: .psql)
     migrations.add(model: JWTBannedToken.self, database: .psql)
     services.register(migrations)
 

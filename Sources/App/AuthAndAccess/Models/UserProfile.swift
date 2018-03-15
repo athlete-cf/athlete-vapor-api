@@ -27,14 +27,18 @@ final class UserProfile: PostgreSQLModel {
     
     enum CodingKeys: String, CodingKey {
         case id
-        case userID
-        case fName
-        case mName
-        case lName
-        case nickName
-        case deletedAt
-        case createdAt
-        case updatedAt
+        case userID = "user_id"
+        case fName = "f_name"
+        case mName = "m_name"
+        case lName = "l_name"
+        case nickName = "nick_name"
+        case deletedAt = "deleted_at"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+        
+        var prefixedStringValue: String {
+            return "up_" + self.stringValue
+        }
     }
     
     /// Creates a new `User`
@@ -78,12 +82,16 @@ extension UserProfile: Migration {
             schema.addField(type: PostgreSQLColumn(type: .timestamp), name: CodingKeys.updatedAt.stringValue, isOptional: true)
             schema.addField(type: PostgreSQLColumn(type: .timestamp), name: CodingKeys.deletedAt.stringValue, isOptional: true)
             schema.addIndex(to: \.userID, isUnique: true)
+            schema.addIndex(to: \.fName, isUnique: false)
+            schema.addIndex(to: \.mName, isUnique: false)
+            schema.addIndex(to: \.lName, isUnique: false)
+            schema.addIndex(to: \.nickName, isUnique: false)
         }
     }
     
     /// Migration.revert
     public static func revert(on connection: PostgreSQLConnection) -> Future<Void> {
-        return Database.delete(User.self, on: connection)
+        return Database.delete(UserBio.self, on: connection)
     }
 }
 
@@ -95,10 +103,10 @@ extension UserProfile: Parameter { }
 
 extension UserProfile {
     struct UpdateRequest: Content {
-        let fname: String?
-        let mname: String?
-        let lname: String?
-        let nickname: String?
+        let fName: String?
+        let mName: String?
+        let lName: String?
+        let nickName: String?
     }
     
     static func findOrCreateOnRequest(_ req: Request, by userID: Int) throws -> Future<UserProfile> {
@@ -111,34 +119,15 @@ extension UserProfile {
         })
     }
     
-    static func oneFromRequest(_ req: Request) throws -> Future<UserProfile> {
-        let id = try req.parameter(Int.self)
-        return UserProfile.query(on: req).filter(\UserProfile.userID == id).first().map(to: UserProfile.self, { item in
-            guard let item = item else {
-                throw Abort(.notFound)
-            }
-            
-            return item
-        })
-    }
-    
-    static func replaceFromRequest(_ req: Request) throws -> Future<UserProfile> {
-        let id = try req.parameter(Int.self)
-        return try req.content.decode(UserProfile.self).flatMap(to: UserProfile.self) { todo in
-            todo.id = id
-            return todo.update(on: req)
-        }
-    }
-    
-    static func updateFromRequest(_ req: Request) throws -> Future<UserProfile> {
+    static func createOrUpdateFromRequest(_ req: Request, by userID: Int) throws -> Future<UserProfile> {
         return try req.content.decode(UpdateRequest.self).flatMap(to: UserProfile.self, { update in
-            return try UserProfile.oneFromRequest(req).flatMap(to: UserProfile.self, { item in
-                if let fname = update.fname { item.fName = fname }
-                if let mname = update.mname { item.mName = mname }
-                if let lname = update.lname { item.lName = lname }
-                if let nickname = update.nickname { item.nickName = nickname }
+            return try UserProfile.findOrCreateOnRequest(req, by: userID).flatMap(to: UserProfile.self, { item in
+                item.fName = update.fName
+                item.mName = update.mName
+                item.lName = update.lName
+                item.nickName = update.nickName
                 
-                return item.update(on: req)
+                return item.save(on: req)
             })
         })
     }
