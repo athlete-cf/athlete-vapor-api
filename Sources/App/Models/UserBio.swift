@@ -104,12 +104,16 @@ extension UserBio {
     }
     
     static func findOrCreateOnRequest(_ req: Request, by userID: Int) throws -> Future<UserBio> {
-        return UserBio.query(on: req).filter(\UserBio.userID == userID).first().flatMap(to: UserBio.self, { item in
-            guard let item = item else {
-                return UserBio(userID: userID).save(on: req)
-            }
+        return User.find(userID, on: req).flatMap(to: UserBio.self, { user in
+            if user == nil { throw Abort(.notFound) }
             
-            return Future(item)
+            return UserBio.query(on: req).filter(\UserBio.userID == userID).first().flatMap(to: UserBio.self, { item in
+                guard let item = item else {
+                    return UserBio(userID: userID).save(on: req)
+                }
+                
+                return Future(item)
+            })
         })
     }
     

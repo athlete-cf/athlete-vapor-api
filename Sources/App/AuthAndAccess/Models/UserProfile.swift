@@ -110,12 +110,16 @@ extension UserProfile {
     }
     
     static func findOrCreateOnRequest(_ req: Request, by userID: Int) throws -> Future<UserProfile> {
-        return UserProfile.query(on: req).filter(\UserProfile.userID == userID).first().flatMap(to: UserProfile.self, { item in
-            guard let item = item else {
-                return UserProfile(userID: userID).save(on: req)
-            }
+        return User.find(userID, on: req).flatMap(to: UserProfile.self, { user in
+            if user == nil { throw Abort(.notFound) }
             
-            return Future(item)
+            return UserProfile.query(on: req).filter(\UserProfile.userID == userID).first().flatMap(to: UserProfile.self, { item in
+                guard let item = item else {
+                    return UserProfile(userID: userID).save(on: req)
+                }
+                
+                return Future(item)
+            })
         })
     }
     

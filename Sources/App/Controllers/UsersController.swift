@@ -37,7 +37,13 @@ class UsersController: RouteCollection {
     /// User Profile with Bio
     func bioWithProfile(_ req: Request) throws -> Future<UserBioWithProfile> {
         let userID = try req.parameter(Int.self)
-        return try UserBioWithProfile.oneOnRequest(req, for: userID)
+        return try UserBioWithProfile.oneOnRequest(req, for: userID).map(to: UserBioWithProfile.self, { profile in
+            guard let profile = profile else {
+                throw Abort(.notFound)
+            }
+            
+            return profile
+        })
     }
     
     func boot(router: Router) throws {

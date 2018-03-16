@@ -22,13 +22,9 @@ final class UserBioWithProfile: PostgreSQLModel {
 extension UserBioWithProfile: Content { }
 
 extension UserBioWithProfile {
-    static func oneOnRequest(_ req: Request, for userID: Int) throws -> Future<UserBioWithProfile> {
-        let promise = Promise<UserBioWithProfile>()
-        
+    static func oneOnRequest(_ req: Request, for userID: Int) throws -> Future<UserBioWithProfile?> {
         let db = DatabaseIdentifier<PostgreSQLDatabase>.psql
-        return req.withPooledConnection(to: db) { connection -> Future<UserBioWithProfile> in
-            var profileFull = UserBioWithProfile(user: User(id: 0, phone: nil), bio: nil, profile: nil)
-            
+        return req.withPooledConnection(to: db) { connection in
             let sql = "" +
             "SELECT " +
                 "u.id, u.phone, u.created_at, u.updated_at, " +
@@ -39,96 +35,61 @@ extension UserBioWithProfile {
             "ON up.user_id = u.id " +
             "INNER JOIN userbios AS ub " +
             "ON ub.user_id = u.id " +
-            "WHERE u.id = 1 AND u.deleted_at IS NULL; "
+            "WHERE u.id = $1 AND u.deleted_at IS NULL; "
             
-            return try connection.query(sql, [userID]).map(to: UserBioWithProfile.self, { data in
-                //print(data)
-                
-                for row in data {
+            return try connection.query(sql, [userID]).map(to: Optional<UserBioWithProfile>.self, { data in
+                if let row = data.first {
                     guard let id: Int = try row[User.CodingKeys.id.stringValue]?.decode(Int.self)
-                    else { throw Abort(.notFound) }
+                        else { throw Abort(.notFound) }
                     let user = User(id: id, phone: nil)
                     
-                    user.phone = (try? row[User.CodingKeys.phone.stringValue]?.decode(String.self)) ?? nil
-                    user.createdAt = (try? row[User.CodingKeys.createdAt.stringValue]?.decode(Date.self)) ?? nil
-                    user.updatedAt = (try? row[User.CodingKeys.updatedAt.stringValue]?.decode(Date.self)) ?? nil
+                    user.phone = row[User.CodingKeys.phone.stringValue]?.decodeOrNil(String.self)
+                    user.createdAt = row[User.CodingKeys.createdAt.stringValue]?.decodeOrNil(Date.self)
+                    user.updatedAt = row[User.CodingKeys.updatedAt.stringValue]?.decodeOrNil(Date.self)
                     
                     var bio: UserBio?
                     var profile: UserProfile?
                     
                     if
-                        let bioID = (try? row[UserBio.CodingKeys.id.prefixedStringValue]?.decode(Int.self)) ?? nil,
-                        let userID = (try? row[UserBio.CodingKeys.userID.prefixedStringValue]?.decode(Int.self)) ?? nil,
-                        let createdAt = (try? row[UserBio.CodingKeys.createdAt.prefixedStringValue]?.decode(Date.self)) ?? nil,
-                        let updatedAt = (try? row[UserBio.CodingKeys.updatedAt.prefixedStringValue]?.decode(Date.self)) ?? nil
+                        let bioID = row[UserBio.CodingKeys.id.prefixedStringValue]?.decodeOrNil(Int.self),
+                        let userID = row[UserBio.CodingKeys.userID.prefixedStringValue]?.decodeOrNil(Int.self),
+                        let createdAt = row[UserBio.CodingKeys.createdAt.prefixedStringValue]?.decodeOrNil(Date.self),
+                        let updatedAt = row[UserBio.CodingKeys.updatedAt.prefixedStringValue]?.decodeOrNil(Date.self)
                     {
                         bio = UserBio(
                             userID: userID,
                             id: bioID,
-                            birthday: (try? row[UserBio.CodingKeys.birthday.prefixedStringValue]?.decode(Date.self)) ?? nil,
-                            weight: (try? row[UserBio.CodingKeys.weight.prefixedStringValue]?.decode(Float.self)) ?? nil,
-                            height: (try? row[UserBio.CodingKeys.height.prefixedStringValue]?.decode(Float.self)) ?? nil
+                            birthday: row[UserBio.CodingKeys.birthday.prefixedStringValue]?.decodeOrNil(Date.self),
+                            weight: row[UserBio.CodingKeys.weight.prefixedStringValue]?.decodeOrNil(Float.self),
+                            height: row[UserBio.CodingKeys.height.prefixedStringValue]?.decodeOrNil(Float.self)
                         )
                         bio?.createdAt = createdAt
                         bio?.updatedAt = updatedAt
                     }
                     
                     if
-                        let profileID = (try? row[UserProfile.CodingKeys.id.prefixedStringValue]?.decode(Int.self)) ?? nil,
-                        let userID = (try? row[UserProfile.CodingKeys.userID.prefixedStringValue]?.decode(Int.self)) ?? nil,
-                        let createdAt = (try? row[UserProfile.CodingKeys.createdAt.prefixedStringValue]?.decode(Date.self)) ?? nil,
-                        let updatedAt = (try? row[UserProfile.CodingKeys.updatedAt.prefixedStringValue]?.decode(Date.self)) ?? nil
+                        let profileID = row[UserProfile.CodingKeys.id.prefixedStringValue]?.decodeOrNil(Int.self),
+                        let userID = row[UserProfile.CodingKeys.userID.prefixedStringValue]?.decodeOrNil(Int.self),
+                        let createdAt = row[UserProfile.CodingKeys.createdAt.prefixedStringValue]?.decodeOrNil(Date.self),
+                        let updatedAt = row[UserProfile.CodingKeys.updatedAt.prefixedStringValue]?.decodeOrNil(Date.self)
                     {
                         profile = UserProfile(
                             userID: userID,
                             id: profileID,
-                            fname: (try? row[UserProfile.CodingKeys.fName.prefixedStringValue]?.decode(String.self)) ?? nil,
-                            mname: (try? row[UserProfile.CodingKeys.mName.prefixedStringValue]?.decode(String.self)) ?? nil,
-                            lname: (try? row[UserProfile.CodingKeys.lName.prefixedStringValue]?.decode(String.self)) ?? nil,
-                            nickname: (try? row[UserProfile.CodingKeys.nickName.prefixedStringValue]?.decode(String.self)) ?? nil
+                            fname: row[UserProfile.CodingKeys.fName.prefixedStringValue]?.decodeOrNil(String.self),
+                            mname: row[UserProfile.CodingKeys.mName.prefixedStringValue]?.decodeOrNil(String.self),
+                            lname: row[UserProfile.CodingKeys.lName.prefixedStringValue]?.decodeOrNil(String.self),
+                            nickname: row[UserProfile.CodingKeys.nickName.prefixedStringValue]?.decodeOrNil(String.self)
                         )
                         profile?.createdAt = createdAt
                         profile?.updatedAt = updatedAt
                     }
                     
-                    profileFull = UserBioWithProfile(user: user, bio: bio, profile: profile)
+                    return UserBioWithProfile(user: user, bio: bio, profile: profile)
+                } else {
+                    return nil
                 }
-                
-                return profileFull
             })
         }
-        
-//        try User.oneFromRequest(req, by: userID).addAwaiter(callback: { result in
-//            guard let user = result.expectation else {
-//                promise.fail(Abort(.notFound))
-//                return
-//            }
-//
-//            profileFull = UserBioWithProfile(user: user, bio: nil, profile: nil)
-//
-//            var counter = 0
-//
-//            UserBio.query(on: req)
-//                .filter(\UserBio.userID == userID)
-//                .first().addAwaiter(callback: { resultBio in
-//                    profileFull.bio = resultBio.expectation ?? nil
-//
-//                    counter += 1
-//                    if counter == 2 { promise.complete(profileFull) }
-//                })
-//
-//            UserProfile.query(on: req)
-//                .filter(\UserProfile.userID == userID)
-//                .first().addAwaiter(callback: { resultProfile in
-//                    profileFull.profile = resultProfile.expectation ?? nil
-//
-//                    counter += 1
-//                    if counter == 2 { promise.complete(profileFull) }
-//                })
-//        })
-        
-        //req.withPooledConnection(to: ., closure: <#T##(DatabaseConnection) throws -> Future<T>#>)
-        
-        return promise.future
     }
 }
